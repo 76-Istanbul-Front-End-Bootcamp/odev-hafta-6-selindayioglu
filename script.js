@@ -1,34 +1,43 @@
-const addPet = (isim, image, description) => {
-    const petCardHTML = `<div class="card" style="width: 18rem;">
-                    <img src=${image} class="card-img-top">
-                    <div class="card-body">
-                        <h5 class="card-title">${isim}</h5>
-                    </div>
-                </div>`;
-    document.querySelector("#petsHolder").innerHTML += petCardHTML;
+window.mockApiUrl = "https://5ff4b45f16cf4f0017c2082c.mockapi.io/pets/";
+
+window.removePet = (id) => {
+  fetch(`${window.mockApiUrl}${id}`, {
+    method: "DELETE",
+    headers: {
+      Accept: "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+    },
+  }).then((resp) => {
+    window.location.reload();
+  });
 };
 
-function updatePets(){
-    document.querySelector("#petsHolder").innerHTML = "";
-    if(window.localStorage.getItem("pets")){
-        const petsArr = JSON.parse(window.localStorage.getItem("pets"));
-        petsArr.forEach((pet) => {addPet(pet.isim, pet.image, pet.description)});
-    }
-}
+window.generateDetailModal = (pet) => {
+  return `<div class="modal fade" id="exampleModal${pet.id}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        ...
+        ${pet.name}
+      </div>
+      
+    </div>
+  </div>
+</div>`;
+};
 
-document.querySelector("#petForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const isim        = document.querySelector("#petName").value;
-    const image       = document.querySelector("#petImage").value;
-    const description = document.querySelector("#petDesc").value;
-    const currentPets = window.localStorage.getItem("pets");
-    if(currentPets){
-        const newPets = JSON.parse(currentPets).concat([{isim, image, description}]);
-        window.localStorage.setItem("pets", JSON.stringify(newPets));
-    }else{
-        window.localStorage.setItem("pets", JSON.stringify([{isim, image, description}]));
-    }
-    updatePets();
-});
-
-updatePets();
+window.openPetDetail = (id) => {
+  fetch(`${window.mockApiUrl}${id}`)
+    .then((resp) => resp.json())
+    .then((data) => {
+      const petModalHtml = generateDetailModal(data);
+      document.querySelector("body").innerHTML += petModalHtml;
+      $(`#exampleModal${id}`).modal("show");
+    });
+};
